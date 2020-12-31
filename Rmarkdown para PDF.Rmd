@@ -1,0 +1,40 @@
+---
+title: "PDF"
+output: 
+  pdf_document: 
+    toc: true
+    toc_depth: 3
+    number_sections: true
+---
+
+Si queremos un PDF, lo indicamos en el output
+Nos ofrece muchas de las posibilidades de HTML
+
+```{r}
+#Algunas opciones especificas para PDF
+#fontsize	 (e.g., 10pt, 11pt, or 12pt)
+#documentclass,	(e.g., article)
+#geometry	 (e.g., margin=1in)
+#mainfont, sansfont, monofont, mathfont	para tipos de letra
+```
+
+
+Tambien podemos generar un RMarkdown en formato PowerPoint
+
+
+---
+title: "PowerPoint"
+author: Yo
+date: 2020 Diciembre
+output: powerpoint_presentation
+---
+```{r}
+#Disponible solo  en el paquete de rmarkdown >= v1.9, y >= Pandoc v2.0.5.
+#Comprobar con:
+packageVersion('rmarkdown') 
+rmarkdown::pandoc_version()
+
+#si no lo teneis, podeis instalar Pandoc 2.x o la version RStudio >= 1.2.633 que ya lo incluye
+
+```
+

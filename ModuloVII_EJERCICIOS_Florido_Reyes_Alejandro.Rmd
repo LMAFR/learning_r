@@ -1,0 +1,198 @@
+---
+title: "Ejercicios_Modulo_VII"
+author: "Alejandro Florido"
+date: "3/12/2020"
+output: 
+  html_document:
+    toc: True
+    toc_depth: 5
+    toc_float: True
+    collapse: True
+    number_sections: True
+    theme: darkly
+    fig_width: 7
+    fig_height: 6
+    fig_caption: True
+---
+
+# Ejercicios Modulo III (4)
+
+## Ej 1. 
+
+Comprueba los supuestos del ANOVA de un factor hecho en clase:
+
+### ANOVA 1 factor
+
+*Vamos a ver si existen diferencias en el gasto de las comunidades de
+*Andalucia, Baleares y Canarias desde el 2004 hasta el 2017
+
+
+```{r setup}
+setwd("C:/Documentos y otros/EAE/Asignaturas y Master/Business Performance Analysis/Tras la reforma/Día 9")
+library(readxl)
+gasto <- read_excel('Gasto_de_los_turistas_segun_destino_principal.xlsx',col_names = TRUE,skip=1)
+
+variablegrupo<-rep(c("AN","IB","CA"),each=14)
+gastoAN<- as.data.frame(t(gasto[1,4:17]))
+gastoIB<- as.data.frame(t(gasto[2,4:17])) 
+gastoCA<- as.data.frame(t(gasto[3,4:17])) 
+gastos<- c(gastoAN$V1,gastoIB$V1,gastoCA$V1)
+datos<- data.frame(variablegrupo,gastos)
+
+by(gastos,variablegrupo,mean) # miramos las medias que queremos comparar
+
+anova(lm(gastos~variablegrupo))
+```
+
+La primera linea nos habla de la variacion entre grupos, la segunda nos habla de la variacion dentro de los grupos. Teniendo en cuenta ambas, nos da el estadistico F y su p-valor.
+
+### Comparacion por pares:
+
+```{r}
+pairwise.t.test(gastos, variablegrupo, p.adj="bonferroni")
+```
+
+Correccion de Bonferroni: la probabilidad de observar al menos un evento de entre n en nuestro caso, de que una de las 3 comparaciones sea significativa) es menor de la suma de las probabilidades de cada evento, por lo que multiplica cada p-valor por n.
+
+En este caso vemos que la condición de medias iguales no se ha cumplido para la pareja Andalucía-Islas Baleares.
+
+Una posible representación sería:
+
+```{r}
+stripchart(gastos~variablegrupo,pch=16, vert=T)
+
+```
+El stripchart es un grafico grafico de tiras/bandas que permite hacer graficos de dispersion de cada grupo. pch=16 se usa para que nos represente los datos en pequeños puntos y vert=T para que nos represente los datos en vertical.
+
+```{r}
+stripchart(gastos~variablegrupo,pch=16, vert=T,
+           method="jitter",
+           jitter=0.05)
+
+#jitter nos permite que los datos coindidentes no esten superpuestos
+
+xbar <- tapply(gastos,variablegrupo, mean)
+s <- tapply(gastos,variablegrupo, sd)
+n <- tapply(gastos,variablegrupo, length)
+sem <- s/sqrt(n) #error standard de la media = variacion
+
+#de la media de n valores aleatorios 
+#es decir, es una medida de precision de la media
+#o aproximacion de lo que la media 
+#de nuestros datos puede haberse alejado del valor real en la poblacion 
+
+arrows(1:3,xbar+sem,1:3,xbar-sem,angle=90,
+       code=3,length=.1)
+
+
+#esta funcion permite añadir flechas a los graficos
+#conseguimos que no sean flechas sino 'los bigotes' jugando con angle
+#y añadiendole un final a la flecha (con code)
+#los 4 primeros argumentos con los extremos de las flechas (x1, y1, x2, y2)
+
+lines(1:3,xbar)
+```
+
+Esta funcion pinta lineas entre las coordenadas que le digamos. Como hemos dicho, lo largos o cortos que sean los bigotes, va a ser una representacion de la precision de las medias. Hay gente que prefiere representar la SD o los intervalos de confianza.
+
+### SUPUESTOS:
+#### HOMOCEDASTICIDAD
+
+```{r}
+bartlett.test(gastos~variablegrupo)
+```
+El test de Barlett pone a prueba la H0 de igualdad de varianzas en este caso, se cumple la hipótesis nula (las varianzas de las tres muestras se pueden considerar iguales para un intervalo de confianza del 95%).
+
+#### NORMALIDAD
+```{r}
+
+library(lattice)
+histogram(~ gastos | variablegrupo, layout=c(1,3))      
+```
+
+A priori las distribuciones no son normales, la que más se podría parecer es la de Canarias, pero en general les falta simetría y en Andalucía y las Islas Baleares, los picos son muy abruptos (kurtosis elevada, hablando en valores absolutos). Dicho esto, como la única que se podría salvar es la de Canarias, hay que rechazar esta suposición, por lo que los resultados del ANOVA no serán fiables.
+
+```{r}
+
+boxplot(gastos~variablegrupo,
+        names=c("AN","IB","CA")) # Mirar centro (mediana);
+```
+Podemos ver que la dispersión es baja (el bigote es corto, luego los datos no están distribuidos a lo largo de un intervalo de valores muy amplio); pero hay asimetría y casos atípicos o extremos (que afectan muy negativamente a los resultados del ANOVA).
+ 
+```{r}
+
+qqnorm(gastoAN[,1], main="Gastos Andalucia");qqline(gastoAN[,1],distribution = qnorm)
+qqnorm(gastoIB[,1], main="Gastos Baleares"); qqline(gastoIB[,1],distribution = qnorm)
+qqnorm(gastoCA[,1], main="Gastos Canarias"); qqline(gastoCA[,1],distribution = qnorm)
+
+library(psych)
+by(gastos,variablegrupo,describe) # ¿que vemos de asimetria y curtosis?
+
+ks.test(gastoAN[,1], "pnorm")
+shapiro.test(gastoAN[,1])
+ks.test(gastoIB[,1], "pnorm")
+shapiro.test(gastoIB[,1])
+ks.test(gastoCA[,1], "pnorm")
+shapiro.test(gastoCA[,1])
+
+```
+
+Los test de K-S y S-W indican que hay que rechazar la suposición de normalidad de las distribuciones. No obstante, recordemos que son test muy sensibles y, por lo tanto, muy estrictos, así que esto no siempre implica descartar el ANOVA. En cualquier caso, como aquí ya hemos obtenido varios resultados que indican que los resultados del ANOVA iban a ser malos, hubiera sido mejor no realizarlo en el script previo a este.
+
+## Ej 2. 
+
+Haz un analisis estadistico que pruebe si la diferencia de hospitalizados es significativa entre las comunidades autonomas de Madrid (CM) Extremadura (EX) y Andalucia (AN) en la base "agregados".
+
+```{r}
+datos.covid <-read.csv("https://cnecovid.isciii.es/covid19/resources/agregados.csv", header =T)
+datos.covid<- datos.covid[1:1729,]
+
+library(dplyr)
+Base<-select(datos.covid, CCAA, Hospitalizados)
+Base<-split (Base, Base$CCAA)
+Base <- rbind(Base$AN,Base$EX,Base$CM)
+
+anova(lm(Base$Hospitalizados~Base$CCAA))
+
+```
+lm es el modelo que se usa para calcular el ajuste de los datos, la primera linea nos habla de la variacion entre grupos, la segunda nos habla de la variacion dentro de los grupos
+teniendo en cuenta ambas, nos da el estadistico F y su p-valor. 
+
+¿Conclusion? ¿entre que grupos?
+
+Como podemos observar en el resultado, en este caso p<0.05, por lo que rechazamos la hipótesis nula (que las medias de las tres muestras sean iguales). Para comprobar qué parejas hacen que haya que rechazar la hipótesis podemos aplicar Bonferroni.
+
+
+### Comparacion por pares con Bonferroni:
+```{r}
+pairwise.t.test(Base$Hospitalizados,Base$CCAA, p.adj="bonferroni")
+```
+
+Hay diferencias significativas entre todas las comunidades, es decir, en este caso fallan todas las parejas.
+
+### Representación gráfica.
+
+¿Podrias representar las medias en un grafico?
+
+#### Opcion boxplot
+
+```{r}
+
+boxplot(Base$Hospitalizados~Base$CCAA,
+        ylab="Numero de hospitalizados",
+        xlab="Comunidad Autonoma")
+```
+Vemos que los cuartiles presentan distintos tamaños (inhomogeneidad en la distribución de los datos) y que algunos bigotes son largos, por los que hay dispersión. 
+
+#### Opcion de representación de medias:
+
+```{r}
+library(gplots)
+plotmeans(Base$Hospitalizados~Base$CCAA, frame=T,
+          mean.labels=T)
+
+```
+También podemos representar las medias para ver la diferencia entre ellas.
+
+
+#### Otra opción sería hacer un stripchart.

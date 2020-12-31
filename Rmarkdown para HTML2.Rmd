@@ -1,0 +1,42 @@
+---
+title: "Opciones para HTML"
+output:
+  html_document:
+    toc: true # Se usa para rear un índice. Es necesaria para que las dos siguientes tengan efecto, ya que son opciones de toc.
+    toc_depth: 3 # Este es el valor por defecto. Indica el número de subsecciones totales.
+    toc_float: true # Si pones False, el índice aparece al principio del documento y si pones True, el índice se irá aparecerá a un lado y se irá moviendo con nosotros mientras leemos.
+    collapsed: true  # Con True oculta las subsecciones de los índices hasta que pulsamos sobre las secciones.
+    number_sections: true # Numerar las secciones o no hacerlo.
+    theme: darkly # Fondo del documento.
+    fig_width: 7
+    fig_height: 6
+    fig_caption: true # Para que te saque el título en caso de que le pongas nombre a las figuras.
+---
+
+Al iniciar el documento, tenemos una seccion para incluir los  metadatos del documento.
+
+  *toc va a crear una tabla de contenidos (table of contents)
+  *toc_float va a permitir ver la table de contenidos a la inzquierda a lo largo  de todo el documento 
+  *collapsed es por defecto TRUE y hace que se muestre solo el titulo principal
+  *number_sections si queremos numerar los titulos
+  *theme cambia el aspecto. probar: Valid themes include default, cerulean, journal, flatly, darkly, readable, spacelab, united, cosmo, lumen, paper, sandstone, simplex, and yeti. 
+  
+  *en esta seccion tambien podemos incluir las funciones de graficos y tablas que hemos visto
+  para que el formato sea igual en todo el documento
+  *fig_caption (tambien en HTML) indica si mostramos las figuras con subtitulo
+  
+# Asi vamos a poner los títulos
+## Asi vamos a poner los títulos
+### Asi vamos a poner los títulos
+
+
+La siguiente línea de código nos permite crear secciones cuyo contenido podamos desplegar o replegar haciendo click sobre ellas.
+
+# Asi vamos a poner los títulos {.tabset}
+## Asi podemos poner las secciones
+
+asnapsnpcmla
+
+## Asi podemos poner las secciones
+
+jaajjajaja
